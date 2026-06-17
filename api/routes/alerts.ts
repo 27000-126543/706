@@ -35,11 +35,14 @@ router.get('/stats/summary', (_req: Request, res: Response) => {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
+  const pendingStatuses = ['pending', 'processing', 'escalated'];
+  const resolvedStatuses = ['resolved', 'approved', 'rejected'];
+
   const stats = {
     total: alerts.length,
-    pending: alerts.filter(a => a.status === 'pending').length,
-    processing: alerts.filter(a => a.status === 'processing' || a.status === 'escalated').length,
-    resolved: alerts.filter(a => a.status === 'resolved').length,
+    pending: alerts.filter(a => pendingStatuses.includes(a.status)).length,
+    processing: alerts.filter(a => a.status === 'processing').length,
+    resolved: alerts.filter(a => resolvedStatuses.includes(a.status)).length,
     level1: alerts.filter(a => a.level === 1).length,
     level2: alerts.filter(a => a.level === 2).length,
     todayCount: alerts.filter(a => new Date(a.triggeredAt) >= today).length
@@ -78,6 +81,33 @@ router.post('/', (req: Request<unknown, unknown, Partial<Alert>>, res: Response<
 
   alerts.unshift(newAlert);
   res.status(201).json(newAlert);
+});
+
+router.post('/:id/escalate', (req: Request<{ id: string }>, res: Response<Alert | { error: string }>) => {
+  const { id } = req.params;
+  const alerts = getAlerts();
+  const alertIndex = alerts.findIndex(a => a.id === id);
+
+  if (alertIndex === -1) {
+    return res.status(404).json({ error: '预警不存在' });
+  }
+
+  const alert = alerts[alertIndex];
+
+  if (alert.status !== 'escalated' || !alert.approvalFlow) {
+    alert.status = 'escalated';
+    alert.level = 2;
+    alert.escalationTime = new Date();
+    alert.approvalFlow = [
+      { step: 1, role: '现场安全员', action: 'pending' as ApprovalAction, comment: '', userName: '' },
+      { step: 2, role: '区域安全负责人', action: 'pending' as ApprovalAction, comment: '', userName: '' },
+      { step: 3, role: '总部安全总监', action: 'pending' as ApprovalAction, comment: '', userName: '' }
+    ];
+    alert.currentStep = 0;
+  }
+
+  alerts[alertIndex] = alert;
+  res.json(alert);
 });
 
 router.post('/:id/approve', (req: Request<{ id: string }, unknown, ApprovalRequest>, res: Response<Alert | { error: string }>) => {

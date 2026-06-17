@@ -8,6 +8,7 @@ import { useAppStore } from '../store/index.js';
 import type { LoginRequest } from '../../shared/types.js';
 
 export default function Login() {
+  const [form] = Form.useForm<LoginRequest>();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
@@ -23,12 +24,16 @@ export default function Login() {
       setUser(response.user);
       localStorage.setItem('user', JSON.stringify(response.user));
       message.success('登录成功');
-      navigate('/dashboard');
+      navigate('/dashboard', { replace: true });
     } catch (err) {
       const axiosError = err as AxiosError<{ error?: string }>;
       const errorMsg = axiosError.response?.data?.error || '用户名或密码错误';
       setError(errorMsg);
       message.error(errorMsg);
+      form.setFieldsValue({
+        username: values.username,
+        password: values.password
+      });
     } finally {
       setLoading(false);
     }
@@ -59,6 +64,7 @@ export default function Login() {
           )}
 
           <Form
+            form={form}
             name="login"
             initialValues={{ username: 'admin', password: '123456' }}
             onFinish={onFinish}

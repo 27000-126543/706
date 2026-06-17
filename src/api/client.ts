@@ -100,6 +100,9 @@ export const alertsApi = {
   approveAlert: (id: string, data: ApprovalRequest) =>
     axiosInstance.post<Alert>(`/alerts/${id}/approve`, data).then(r => r.data),
 
+  escalateAlert: (id: string) =>
+    axiosInstance.post<Alert>(`/alerts/${id}/escalate`).then(r => r.data),
+
   resolveAlert: (id: string) =>
     axiosInstance.post<Alert>(`/alerts/${id}/resolve`).then(r => r.data),
 

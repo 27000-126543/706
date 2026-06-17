@@ -1,5 +1,5 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import {
   AlertTriangle,
   Clock,
@@ -32,6 +32,8 @@ interface FilterFormValues {
 
 export default function AlertList() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const initializedRef = useRef(false);
   const [loading, setLoading] = useState(true);
   const [alerts, setAlerts] = useState<Alert[]>([]);
   const [total, setTotal] = useState(0);
@@ -85,7 +87,17 @@ export default function AlertList() {
   useEffect(() => {
     fetchAlerts();
     fetchStats();
+    if (!initializedRef.current) {
+      initializedRef.current = true;
+    }
   }, [pagination.pageSize, filters, fetchAlerts, fetchStats]);
+
+  useEffect(() => {
+    if (initializedRef.current) {
+      fetchAlerts();
+      fetchStats();
+    }
+  }, [location.key]);
 
   const getAlertTypeText = (type: AlertType) => {
     const texts: Record<AlertType, string> = {
@@ -146,8 +158,16 @@ export default function AlertList() {
     }
   };
 
-  const handleEscalate = (alert: Alert) => {
-    navigate(`/alerts/approval/${alert.id}`);
+  const handleEscalate = async (alert: Alert) => {
+    try {
+      await alertsApi.escalateAlert(alert.id);
+      await fetchAlerts();
+      await fetchStats();
+      navigate(`/alerts/approval/${alert.id}`);
+    } catch (error) {
+      console.error('Failed to escalate alert:', error);
+      message.error('升级失败');
+    }
   };
 
   const handleFilterSearch = (values: FilterFormValues) => {
@@ -364,7 +384,7 @@ export default function AlertList() {
             size="small"
             icon={<ArrowUp className="w-4 h-4" />}
             onClick={() => handleEscalate(record)}
-            disabled={record.status === 'escalated' || record.status === 'resolved'}
+            disabled={record.status === 'resolved' || record.status === 'approved' || record.status === 'rejected'}
           >
             升级
           </Button>
@@ -467,7 +487,8 @@ export default function AlertList() {
                 { value: 'processing', label: '处理中' },
                 { value: 'approved', label: '已审批' },
                 { value: 'resolved', label: '已解决' },
-                { value: 'escalated', label: '已升级' }
+                { value: 'escalated', label: '已升级' },
+                { value: 'rejected', label: '已驳回' }
               ]}
             />
           </Form.Item>

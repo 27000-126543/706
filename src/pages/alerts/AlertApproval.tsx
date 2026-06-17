@@ -41,7 +41,10 @@ export default function AlertApproval() {
   const fetchAlertDetail = useCallback(async () => {
     try {
       setLoading(true);
-      const data = await alertsApi.getAlert(id!);
+      let data = await alertsApi.getAlert(id!);
+      if (!data.approvalFlow || data.approvalFlow.length === 0) {
+        data = await alertsApi.escalateAlert(id!);
+      }
       setAlert(data);
     } catch (error) {
       console.error('Failed to fetch alert detail:', error);
@@ -160,9 +163,9 @@ export default function AlertApproval() {
         comment: values.comment
       };
 
-      await alertsApi.approveAlert(id!, approvalRequest);
+      const updatedAlert = await alertsApi.approveAlert(id!, approvalRequest);
+      setAlert(updatedAlert);
       message.success(action === 'approved' ? '审批通过成功' : '审批驳回成功');
-      fetchAlertDetail();
       form.resetFields();
     } catch (error) {
       console.error('Failed to submit approval:', error);
