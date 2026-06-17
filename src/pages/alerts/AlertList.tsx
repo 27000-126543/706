@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   AlertTriangle,
@@ -54,38 +54,38 @@ export default function AlertList() {
     resolved: 0
   });
 
+  const fetchStats = useCallback(async () => {
+    try {
+      const statsData = await alertsApi.getStats();
+      setStats(statsData as typeof stats);
+    } catch (error) {
+      console.error('Failed to fetch alert stats:', error);
+    }
+  }, []);
+
+  const fetchAlerts = useCallback(async () => {
+    try {
+      setLoading(true);
+      const params: { level?: number; status?: string; province?: string } = {};
+      if (filters.level) params.level = filters.level;
+      if (filters.status) params.status = filters.status;
+      if (filters.province) params.province = filters.province;
+      
+      const response = await alertsApi.getAlerts(params);
+      setAlerts(response.data);
+      setTotal(response.total);
+    } catch (error) {
+      console.error('Failed to fetch alerts:', error);
+      message.error('获取预警列表失败');
+    } finally {
+      setLoading(false);
+    }
+  }, [filters]);
+
   useEffect(() => {
-    const fetchStats = async () => {
-      try {
-        const statsData = await alertsApi.getStats();
-        setStats(statsData as typeof stats);
-      } catch (error) {
-        console.error('Failed to fetch alert stats:', error);
-      }
-    };
-
-    const fetchAlerts = async () => {
-      try {
-        setLoading(true);
-        const params: { level?: number; status?: string; province?: string } = {};
-        if (filters.level) params.level = filters.level;
-        if (filters.status) params.status = filters.status;
-        if (filters.province) params.province = filters.province;
-        
-        const response = await alertsApi.getAlerts(params);
-        setAlerts(response.data);
-        setTotal(response.total);
-      } catch (error) {
-        console.error('Failed to fetch alerts:', error);
-        message.error('获取预警列表失败');
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchAlerts();
     fetchStats();
-  }, [pagination.pageSize, filters]);
+  }, [pagination.pageSize, filters, fetchAlerts, fetchStats]);
 
   const getAlertTypeText = (type: AlertType) => {
     const texts: Record<AlertType, string> = {

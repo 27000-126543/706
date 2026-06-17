@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
   ArrowLeft,
@@ -38,24 +38,24 @@ export default function AlertApproval() {
   const [alert, setAlert] = useState<Alert | null>(null);
   const [form] = Form.useForm();
 
-  useEffect(() => {
-    const fetchAlertDetail = async () => {
-      try {
-        setLoading(true);
-        const data = await alertsApi.getAlert(id!);
-        setAlert(data);
-      } catch (error) {
-        console.error('Failed to fetch alert detail:', error);
-        message.error('获取预警详情失败');
-      } finally {
-        setLoading(false);
-      }
-    };
+  const fetchAlertDetail = useCallback(async () => {
+    try {
+      setLoading(true);
+      const data = await alertsApi.getAlert(id!);
+      setAlert(data);
+    } catch (error) {
+      console.error('Failed to fetch alert detail:', error);
+      message.error('获取预警详情失败');
+    } finally {
+      setLoading(false);
+    }
+  }, [id]);
 
+  useEffect(() => {
     if (id) {
       fetchAlertDetail();
     }
-  }, [id]);
+  }, [id, fetchAlertDetail]);
 
   const getAlertTypeText = (type: AlertType) => {
     const texts: Record<AlertType, string> = {

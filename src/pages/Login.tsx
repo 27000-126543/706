@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Factory, Eye, EyeOff, AlertCircle } from 'lucide-react';
 import { Form, Input, Button, Card, message } from 'antd';
+import type { AxiosError } from 'axios';
 import { authApi } from '../api/client.js';
 import { useAppStore } from '../store/index.js';
 import type { LoginRequest } from '../../shared/types.js';
@@ -23,8 +24,9 @@ export default function Login() {
       localStorage.setItem('user', JSON.stringify(response.user));
       message.success('登录成功');
       navigate('/dashboard');
-    } catch (err: AxiosError) {
-      setError(err.response?.data?.error || '登录失败，请稍后重试');
+    } catch (err) {
+      const axiosError = err as AxiosError<{ error?: string }>;
+      setError(axiosError.response?.data?.error || '登录失败，请稍后重试');
       message.error('登录失败');
     } finally {
       setLoading(false);

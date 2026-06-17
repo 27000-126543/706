@@ -30,6 +30,24 @@ router.get('/', (req: Request, res: Response<{ data: Alert[]; total: number }>) 
   res.json({ data: alerts, total: alerts.length });
 });
 
+router.get('/stats/summary', (_req: Request, res: Response) => {
+  const alerts = getAlerts();
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const stats = {
+    total: alerts.length,
+    pending: alerts.filter(a => a.status === 'pending').length,
+    processing: alerts.filter(a => a.status === 'processing' || a.status === 'escalated').length,
+    resolved: alerts.filter(a => a.status === 'resolved').length,
+    level1: alerts.filter(a => a.level === 1).length,
+    level2: alerts.filter(a => a.level === 2).length,
+    todayCount: alerts.filter(a => new Date(a.triggeredAt) >= today).length
+  };
+
+  res.json(stats);
+});
+
 router.get('/:id', (req: Request<{ id: string }>, res: Response<Alert | { error: string }>) => {
   const { id } = req.params;
   const alerts = getAlerts();
@@ -151,24 +169,6 @@ router.get('/:id/history', (req: Request<{ id: string }>, res: Response) => {
   }
 
   res.json({ data: history.sort((a, b) => new Date(a.time).getTime() - new Date(b.time).getTime()) });
-});
-
-router.get('/stats/summary', (_req: Request, res: Response) => {
-  const alerts = getAlerts();
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-
-  const stats = {
-    total: alerts.length,
-    pending: alerts.filter(a => a.status === 'pending').length,
-    processing: alerts.filter(a => a.status === 'processing' || a.status === 'escalated').length,
-    resolved: alerts.filter(a => a.status === 'resolved').length,
-    level1: alerts.filter(a => a.level === 1).length,
-    level2: alerts.filter(a => a.level === 2).length,
-    todayCount: alerts.filter(a => new Date(a.triggeredAt) >= today).length
-  };
-
-  res.json(stats);
 });
 
 export default router;

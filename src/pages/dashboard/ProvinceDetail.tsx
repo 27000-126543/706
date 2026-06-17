@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useParams, useLocation, useNavigate } from 'react-router-dom';
 import {
   ArrowLeft,
@@ -29,24 +29,24 @@ export default function ProvinceDetail() {
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState<ProvinceDetailResponse | null>(null);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        const detailData = await dashboardApi.getProvinceDetail(code!);
-        setData(detailData);
-      } catch (error) {
-        console.error('Failed to fetch province detail:', error);
-        message.error('获取省份详情失败');
-      } finally {
-        setLoading(false);
-      }
-    };
+  const fetchData = useCallback(async () => {
+    try {
+      setLoading(true);
+      const detailData = await dashboardApi.getProvinceDetail(code!);
+      setData(detailData);
+    } catch (error) {
+      console.error('Failed to fetch province detail:', error);
+      message.error('获取省份详情失败');
+    } finally {
+      setLoading(false);
+    }
+  }, [code]);
 
+  useEffect(() => {
     if (code) {
       fetchData();
     }
-  }, [code]);
+  }, [code, fetchData]);
 
   const getProductionTrendOption = () => {
     if (!data) return {};

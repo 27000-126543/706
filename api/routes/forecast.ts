@@ -30,7 +30,7 @@ router.get('/plan', (_req: Request, res: Response<PlanData | { error: string }>)
   res.json(planDataCache);
 });
 
-router.post('/upload', upload.single('file'), (req: Request, res: Response) => {
+router.post('/upload', upload.single('file'), (req: Request, res: Response<PlanData | { error: string }>) => {
   if (!req.file) {
     return res.status(400).json({ error: '请上传Excel文件' });
   }
@@ -43,10 +43,10 @@ router.post('/upload', upload.single('file'), (req: Request, res: Response) => {
 
     const year = new Date().getFullYear();
     const targets = data.map((row: Record<string, unknown>) => ({
-      province: row['省份'] || row['province'] || '',
-      productionTarget: parseFloat(row['目标产量(吨)'] || row['productionTarget'] || 0),
-      transportCapacity: parseFloat(row['运输能力(吨)'] || row['transportCapacity'] || 0),
-      refuelingTarget: parseFloat(row['加注目标(吨)'] || row['refuelingTarget'] || 0)
+      province: String(row['省份'] || row['province'] || ''),
+      productionTarget: parseFloat(String(row['目标产量(吨)'] || row['productionTarget'] || '0')),
+      transportCapacity: parseFloat(String(row['运输能力(吨)'] || row['transportCapacity'] || '0')),
+      refuelingTarget: parseFloat(String(row['加注目标(吨)'] || row['refuelingTarget'] || '0'))
     })).filter(t => t.province);
 
     planDataCache = {
@@ -59,15 +59,7 @@ router.post('/upload', upload.single('file'), (req: Request, res: Response) => {
 
     forecastCache = null;
 
-    res.json({
-      success: true,
-      message: '文件解析成功',
-      data: {
-        recordCount: targets.length,
-        year,
-        targets: targets.slice(0, 10)
-      }
-    });
+    res.json(planDataCache);
   } catch (error) {
     console.error('Excel解析错误:', error);
     res.status(500).json({ error: 'Excel文件解析失败，请检查文件格式' });

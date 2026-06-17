@@ -117,7 +117,7 @@ export const forecastApi = {
   uploadPlan: (file: File) => {
     const formData = new FormData();
     formData.append('file', file);
-    return axiosInstance.post('/forecast/upload', formData, {
+    return axiosInstance.post<PlanData>('/forecast/upload', formData, {
       headers: { 'Content-Type': 'multipart/form-data' }
     }).then(r => r.data);
   },
