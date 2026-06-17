@@ -39,14 +39,28 @@ router.post('/upload', upload.single('file'), (req: Request, res: Response<PlanD
     const workbook = XLSX.read(req.file.buffer, { type: 'buffer' });
     const sheetName = workbook.SheetNames[0];
     const worksheet = workbook.Sheets[sheetName];
-    const data = XLSX.utils.sheet_to_json(worksheet);
+    const data = XLSX.utils.sheet_to_json(worksheet, { defval: '' });
+
+    const parseNumber = (value: unknown): number => {
+      if (typeof value === 'number') return value;
+      if (typeof value === 'string') {
+        const cleaned = value.replace(/[,\s]/g, '');
+        const num = parseFloat(cleaned);
+        return isNaN(num) ? 0 : num;
+      }
+      return 0;
+    };
+
+    const parseString = (value: unknown): string => {
+      return String(value || '').trim();
+    };
 
     const year = new Date().getFullYear();
     const targets = data.map((row: Record<string, unknown>) => ({
-      province: String(row['省份'] || row['province'] || ''),
-      productionTarget: parseFloat(String(row['目标产量(吨)'] || row['productionTarget'] || '0')),
-      transportCapacity: parseFloat(String(row['运输能力(吨)'] || row['transportCapacity'] || '0')),
-      refuelingTarget: parseFloat(String(row['加注目标(吨)'] || row['refuelingTarget'] || '0'))
+      province: parseString(row['省份'] || row['province'] || row['Province'] || ''),
+      productionTarget: parseNumber(row['目标产量(吨)'] || row['产量目标(吨)'] || row['productionTarget'] || row['产量目标'] || 0),
+      transportCapacity: parseNumber(row['运输能力(吨)'] || row['transportCapacity'] || row['运输能力'] || 0),
+      refuelingTarget: parseNumber(row['加注目标(吨)'] || row['refuelingTarget'] || row['加注目标'] || 0)
     })).filter(t => t.province);
 
     planDataCache = {

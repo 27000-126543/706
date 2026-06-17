@@ -41,7 +41,7 @@ export default function App() {
           <Route path="/monitoring/refueling" element={<RefuelingMonitoring />} />
           
           <Route path="/alerts" element={<AlertList />} />
-          <Route path="/alerts/:id/approval" element={<AlertApproval />} />
+          <Route path="/alerts/approval/:id" element={<AlertApproval />} />
           
           <Route
             path="/forecast/upload"

@@ -26,8 +26,9 @@ export default function Login() {
       navigate('/dashboard');
     } catch (err) {
       const axiosError = err as AxiosError<{ error?: string }>;
-      setError(axiosError.response?.data?.error || '登录失败，请稍后重试');
-      message.error('登录失败');
+      const errorMsg = axiosError.response?.data?.error || '用户名或密码错误';
+      setError(errorMsg);
+      message.error(errorMsg);
     } finally {
       setLoading(false);
     }

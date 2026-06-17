@@ -147,7 +147,7 @@ export interface RefuelingData {
 
 export type AlertType = 'storage_overpressure' | 'transport_leak' | 'equipment_failure' | 'other';
 export type AlertLevel = 1 | 2;
-export type AlertStatus = 'pending' | 'processing' | 'approved' | 'resolved' | 'escalated';
+export type AlertStatus = 'pending' | 'processing' | 'approved' | 'resolved' | 'escalated' | 'rejected';
 export type ApprovalAction = 'pending' | 'approved' | 'rejected';
 
 export interface ApprovalFlowStep {
@@ -174,6 +174,7 @@ export interface Alert {
   triggeredAt: Date;
   escalationTime?: Date;
   resolvedAt?: Date;
+  rejectionTime?: Date;
   approvalFlow?: ApprovalFlowStep[];
   currentStep?: number;
 }

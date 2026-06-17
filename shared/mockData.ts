@@ -257,8 +257,8 @@ export function generateRefuelingData(count = 10): RefuelingData[] {
 export function generateAlerts(count = 15): Alert[] {
   const types: Array<'storage_overpressure' | 'transport_leak' | 'equipment_failure' | 'other'> = 
     ['storage_overpressure', 'transport_leak', 'equipment_failure', 'other'];
-  const statuses: Array<'pending' | 'processing' | 'approved' | 'resolved' | 'escalated'> = 
-    ['pending', 'processing', 'processing', 'resolved', 'escalated'];
+  const statuses: Array<'pending' | 'processing' | 'approved' | 'resolved' | 'escalated' | 'rejected'> = 
+    ['pending', 'processing', 'processing', 'resolved', 'escalated', 'escalated', 'escalated'];
   const locations = ['北京市朝阳区', '上海市浦东新区', '广州市天河区', '苏州市工业园区', '杭州市西湖区'];
   const messages = {
     storage_overpressure: '储氢罐压力连续超过设计阈值，存在安全隐患',

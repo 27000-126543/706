@@ -81,7 +81,8 @@ export default function AlertApproval() {
       processing: 'processing',
       approved: 'blue',
       resolved: 'success',
-      escalated: 'warning'
+      escalated: 'warning',
+      rejected: 'error'
     };
     return colors[status] || 'default';
   };
@@ -92,7 +93,8 @@ export default function AlertApproval() {
       processing: '处理中',
       approved: '已审批',
       resolved: '已解决',
-      escalated: '已升级'
+      escalated: '已升级',
+      rejected: '已驳回'
     };
     return texts[status] || '未知';
   };

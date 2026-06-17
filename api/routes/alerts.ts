@@ -95,25 +95,43 @@ router.post('/:id/approve', (req: Request<{ id: string }, unknown, ApprovalReque
 
   if (!alert.approvalFlow) {
     alert.approvalFlow = [
-      { step: 1, role: '现场安全员', action: 'pending' as ApprovalAction, comment: '' },
-      { step: 2, role: '区域安全负责人', action: 'pending' as ApprovalAction, comment: '' },
-      { step: 3, role: '总部安全总监', action: 'pending' as ApprovalAction, comment: '' }
+      { step: 1, role: '现场安全员', action: 'pending' as ApprovalAction, comment: '', userName: '' },
+      { step: 2, role: '区域安全负责人', action: 'pending' as ApprovalAction, comment: '', userName: '' },
+      { step: 3, role: '总部安全总监', action: 'pending' as ApprovalAction, comment: '', userName: '' }
     ];
   }
+
+  const userNameMap: Record<number, string> = {
+    1: '张安全员',
+    2: '李负责人',
+    3: '王总监'
+  };
 
   const flowStep = alert.approvalFlow.find(s => s.step === step);
   if (flowStep) {
     flowStep.action = action;
-    flowStep.comment = comment;
+    flowStep.comment = comment || '';
     flowStep.timestamp = new Date();
+    flowStep.userName = userNameMap[step] || '系统管理员';
   }
 
+  const isRejected = alert.approvalFlow.some(s => s.action === 'rejected');
   const allApproved = alert.approvalFlow.every(s => s.action === 'approved');
-  if (allApproved) {
+
+  if (isRejected) {
+    alert.status = 'rejected';
+  } else if (allApproved) {
     alert.status = 'approved';
+  } else if (action === 'approved') {
+    alert.currentStep = step;
+  } else {
+    alert.currentStep = step - 1;
   }
 
-  alert.currentStep = step;
+  if (action === 'rejected') {
+    alert.rejectionTime = new Date();
+  }
+
   alerts[alertIndex] = alert;
 
   res.json(alert);
