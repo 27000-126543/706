@@ -68,10 +68,16 @@ export default function AlertList() {
   const fetchAlerts = useCallback(async () => {
     try {
       setLoading(true);
-      const params: { level?: number; status?: string; province?: string } = {};
+      const params: { level?: number; status?: string; province?: string; startDate?: string; endDate?: string } = {};
       if (filters.level) params.level = filters.level;
       if (filters.status) params.status = filters.status;
       if (filters.province) params.province = filters.province;
+      if (filters.dateRange && filters.dateRange[0]) {
+        params.startDate = filters.dateRange[0].format('YYYY-MM-DD');
+      }
+      if (filters.dateRange && filters.dateRange[1]) {
+        params.endDate = filters.dateRange[1].format('YYYY-MM-DD');
+      }
       
       const response = await alertsApi.getAlerts(params);
       setAlerts(response.data);

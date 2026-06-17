@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Bell, Search, Clock, RefreshCw } from 'lucide-react';
 import { useAppStore } from '../../store/index.js';
 import { alertsApi } from '../../api/client.js';
 import dayjs from 'dayjs';
 
 export default function Header() {
+  const navigate = useNavigate();
   const { sidebarCollapsed, unreadAlerts, setUnreadAlerts } = useAppStore();
   const [currentTime, setCurrentTime] = useState(dayjs());
   const [alerts, setAlerts] = useState<Array<{ id: string; message: string; level: number; triggeredAt: Date }>>([]);
@@ -102,6 +104,10 @@ export default function Header() {
                         className={`px-4 py-3 border-b border-gray-50 hover:bg-gray-50 cursor-pointer ${
                           alert.level === 2 ? 'bg-red-50' : 'bg-orange-50'
                         }`}
+                        onClick={() => {
+                          setShowNotifications(false);
+                          navigate('/alerts');
+                        }}
                       >
                         <div className="flex items-start gap-2">
                           <span
@@ -121,7 +127,13 @@ export default function Header() {
                   )}
                 </div>
                 <div className="px-4 py-3 border-t border-gray-100 bg-gray-50">
-                  <button className="w-full text-sm text-blue-600 hover:text-blue-700 font-medium">
+                  <button
+                    className="w-full text-sm text-blue-600 hover:text-blue-700 font-medium text-left"
+                    onClick={() => {
+                      setShowNotifications(false);
+                      navigate('/alerts');
+                    }}
+                  >
                     查看全部预警
                   </button>
                 </div>

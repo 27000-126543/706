@@ -14,7 +14,7 @@ function getAlerts(): Alert[] {
 }
 
 router.get('/', (req: Request, res: Response<{ data: Alert[]; total: number }>) => {
-  const { level, status, province } = req.query;
+  const { level, status, province, startDate, endDate } = req.query;
   let alerts = getAlerts();
 
   if (level) {
@@ -25,6 +25,15 @@ router.get('/', (req: Request, res: Response<{ data: Alert[]; total: number }>) 
   }
   if (province) {
     alerts = alerts.filter(a => a.province === province);
+  }
+  if (startDate) {
+    const start = new Date(startDate as string);
+    alerts = alerts.filter(a => new Date(a.triggeredAt) >= start);
+  }
+  if (endDate) {
+    const end = new Date(endDate as string);
+    end.setHours(23, 59, 59, 999);
+    alerts = alerts.filter(a => new Date(a.triggeredAt) <= end);
   }
 
   res.json({ data: alerts, total: alerts.length });
